@@ -1,0 +1,14 @@
+*.pyc
+*.pyo
+__pycache__/
+env/
+venv/
+.venv/
+Lib/site-packages/
+Scripts/
+share/
+.virtualenvs/
+pyvenv.cfg
+db.sqlite3
+/static/
+.env
