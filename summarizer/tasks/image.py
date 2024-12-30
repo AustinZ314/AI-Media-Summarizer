@@ -4,6 +4,8 @@ from transformers import pipeline
 
 def summarize_image(image_path):
     image = Image.open(image_path)
+
+    # Change image dimensions, contrast, reduce noise
     image = image.convert("L")
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2.0)
