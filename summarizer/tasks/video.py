@@ -1,8 +1,12 @@
 from youtube_transcript_api import YouTubeTranscriptApi
-import yt_dlp
+from yt_dlp import YoutubeDL
 from transformers import pipeline
+#import whisper
+from utils import clean_text
 
 def summarize_video(video_url, video_file):
+    text = ''
+
     if 'youtube.com' in video_url or 'youtu.be' in video_url:   # Check if it's a YouTube video
         try:
             if 'v=' in video_url:
@@ -11,29 +15,33 @@ def summarize_video(video_url, video_file):
                 id = video_url.split('/')[-1]
 
             transcript = YouTubeTranscriptApi.get_transcript(id)
-            text = " ".join([entry['text'] for entry in transcript])
+            text = ' '.join([entry['text'] for entry in transcript])
         except Exception as e:
             print(f"Error fetching transcript for YouTube video: {e}")
-            text = None
+            text = ''
     else:   # If it's from another site, check if it has subtitles
         try:
-            config_options = {'writesubtitles': True, 'subtitleslangs': ['en']}
-            with yt_dlp.YoutubeDL(config_options) as ydl:
+            with YoutubeDL() as ydl:
                 video_info = ydl.extract_info(video_url, download=False)
-
-                if 'subtitles' in video_info and 'en' in video_info['subtitles']:
+                
+                if 'en' in video_info['subtitles']:
                     subtitle_url = video_info['subtitles']['en'][0]['url']
                     subtitles = ydl.urlopen(subtitle_url).read().decode('utf-8')
                     text = subtitles
                 else:
-                    print("No subtitles available")
-                    text = None
+                    text = ''
         except Exception as e:
-            print(f"Error fetching subtitles: {e}")
-            text = None
+            print(f"Error fetching subtitles for non-YouTube video: {e}")
+            text = ''
 
-   # if text is None:
+    # If can't get subtitles, generate transcript with speech-to-text
+    """
+    if text == '':
+        model = whisper.load_model("tiny")
+        text = model.transcribe(video_file)['text']
+    """
         
+    text = clean_text(text)
 
     summarizer = pipeline('summarization')
     summary = summarizer(text, max_length=150, min_length=50, do_sample=False)

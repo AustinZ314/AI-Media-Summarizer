@@ -3,6 +3,7 @@ import pytesseract
 from PIL import Image
 from transformers import pipeline
 import io
+from utils import clean_text
 
 def summarize_pdf(pdf_path):
     pdf = fitz.open(pdf_path)
@@ -22,8 +23,8 @@ def summarize_pdf(pdf_path):
             image = Image.open(io.BytesIO(pixmap.tobytes()))
             text += pytesseract.image_to_string(image)
 
+    text = clean_text(text)
     summarizer = pipeline('summarization')
-    
     summary = summarizer(text, max_length=150, min_length=50, do_sample=False)
     
     return summary[0]['summary_text']
