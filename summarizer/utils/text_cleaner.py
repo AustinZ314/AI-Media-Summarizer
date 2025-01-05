@@ -8,4 +8,9 @@ def clean_text(text):
     text = re.sub(r'[^\w\s.,!?\'-]', '', text)              # Remove special characters
     prompt = "Clean and refine this text to improve clarity and grammar: " + text
     
-    return t5(prompt)[0]['generated-text']
+    try:
+        #result = t5(prompt)
+        return t5(prompt)[0]['generated_text']
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""

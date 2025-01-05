@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from transformers import pipeline
-from utils import clean_text
+from summarizer.utils import clean_text
 
 def summarize_article(article_url):
     response = requests.get(article_url)
@@ -19,9 +19,9 @@ def summarize_article(article_url):
             parsed += element.get_text() + ' '
 
     text = parsed.strip()
-    text = clean_text(text)
+    #text = clean_text(text)
 
-    summarizer = pipeline('summarization')
-    summary = summarizer(text, max_length=150, min_length=50, do_sample=False)
+    summarizer = pipeline('summarization', model="sshleifer/distilbart-cnn-12-6")
+    summary = summarizer(text, max_length=200, min_length=50, do_sample=False, truncation=True)
 
     return summary[0]['summary_text']

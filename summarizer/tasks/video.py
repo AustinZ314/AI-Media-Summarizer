@@ -2,7 +2,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from yt_dlp import YoutubeDL
 from transformers import pipeline
 #import whisper
-from utils import clean_text
+from summarizer.utils import clean_text, split
 
 def summarize_video(video_url, video_file):
     text = ''
@@ -40,10 +40,28 @@ def summarize_video(video_url, video_file):
         model = whisper.load_model("tiny")
         text = model.transcribe(video_file)['text']
     """
-        
-    text = clean_text(text)
+    """
+    text_chunks = split(text)
+    cleaned_text = []
+    for chunk in text_chunks:
+        cleaned_chunk = clean_text(chunk)
+        cleaned_text.append(cleaned_chunk)
+    text = ' '.join(cleaned_text)
+    
+    """
 
-    summarizer = pipeline('summarization')
-    summary = summarizer(text, max_length=150, min_length=50, do_sample=False)
-
+    # Chunk input
+    """
+    text_chunks = split(text)
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+    summaries = []
+    for chunk in text_chunks:
+        summary = summarizer(chunk, max_length=200, min_length=50, do_sample=False)
+        print("------------------------------")
+        print(summary)
+        summaries.append(summary[0]['summary_text'])
+    """
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+    summary = summarizer(text, max_length=200, min_length=50, do_sample=False, truncation=True)
     return summary[0]['summary_text']
+    #return ' '.join(summaries)
